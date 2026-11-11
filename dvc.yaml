@@ -1,0 +1,11 @@
+stages:
+  rag_evaluation:
+    cmd: python backend/scripts/evaluate_rag.py --input data/evaluation/queries.jsonl --output reports/rag_metrics.json --k 5
+    deps:
+      - backend/scripts/evaluate_rag.py
+      - backend/app/services/rag/evaluation.py
+      - backend/app/services/rag/retrieval_service.py
+      - backend/app/services/rag/embeddings.py
+      - data/evaluation/queries.jsonl
+    outs:
+      - reports/rag_metrics.json

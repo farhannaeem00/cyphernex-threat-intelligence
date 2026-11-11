@@ -1,0 +1,5 @@
+﻿{"query":"Which URLhaus malware download records are tagged with Mirai?","relevant_document_ids":[2,3,5]}
+{"query":"Which URLhaus record contains ClickFix and MacSync tags for a macOS threat?","relevant_document_ids":[4]}
+{"query":"Which URLhaus record has the MIPS architecture tag and Mozi malware tag?","relevant_document_ids":[1]}
+{"query":"Which URLhaus records are tagged with Mozi?","relevant_document_ids":[1,2,3,5]}
+{"query":"Which URLhaus malware download record is offline and tagged with ClickFix?","relevant_document_ids":[4]}

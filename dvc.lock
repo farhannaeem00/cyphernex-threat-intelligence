@@ -1,0 +1,31 @@
+schema: '2.0'
+stages:
+  rag_evaluation:
+    cmd: python backend/scripts/evaluate_rag.py --input 
+      data/evaluation/queries.jsonl --output reports/rag_metrics.json --k 5
+    deps:
+    - path: backend/app/services/rag/embeddings.py
+      hash: md5
+      md5: 0e6e62357fccb62427a7816292c5e1ed
+      size: 2308
+    - path: backend/app/services/rag/evaluation.py
+      hash: md5
+      md5: f121ef2bb77eecc73e65ddcd0ef6b7bd
+      size: 2054
+    - path: backend/app/services/rag/retrieval_service.py
+      hash: md5
+      md5: 9d0a92300981aa12f5746bf14f2fead9
+      size: 2707
+    - path: backend/scripts/evaluate_rag.py
+      hash: md5
+      md5: 2af3cea6edbaba32f1ce6c4bd263f3b4
+      size: 803
+    - path: data/evaluation/queries.jsonl
+      hash: md5
+      md5: 0ddd0235b92af28bb00941c0ede0e958
+      size: 544
+    outs:
+    - path: reports/rag_metrics.json
+      hash: md5
+      md5: df8f991bb02b5278fbc5ef5338047544
+      size: 146

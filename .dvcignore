@@ -1,0 +1,7 @@
+.venv/
+node_modules/
+.env
+mlruns/
+storage/
+__pycache__/
+.pytest_cache/
