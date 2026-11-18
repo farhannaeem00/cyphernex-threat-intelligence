@@ -24,3 +24,5 @@ mlartifacts/
 
 # Local DVC storage
 dvc-storage/
+# Local PostgreSQL backup
+cyphernex_backup.dump
