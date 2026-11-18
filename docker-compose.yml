@@ -1,37 +1,43 @@
+
 services:
   db:
     image: postgres:18-alpine
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_DB: cyphernex_threat_intel
-      POSTGRES_USER: cyphernex
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-local-password}
+      POSTGRES_USER: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - cyphernex_pgdata:/var/lib/postgresql
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cyphernex -d cyphernex_threat_intel"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cyphernex_threat_intel"]
+      interval: 10s
       timeout: 5s
-      retries: 20
+      retries: 10
+      start_period: 10s
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    restart: unless-stopped
     env_file:
-      - path: backend/.env
-        required: false
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+psycopg://cyphernex:${POSTGRES_PASSWORD:-change-this-local-password}@db:5432/cyphernex_threat_intel
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
       UPLOAD_DIR: /app/storage/uploads
       MLFLOW_TRACKING_URI: sqlite:////app/mlflow/mlflow.db
     volumes:
-    - uploads:/app/storage/uploads
-    - mlflow_data:/app/mlflow
-    - mlflow_artifacts:/app/mlartifacts
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      - uploads:/app/storage/uploads
+      - mlflow_data:/app/mlflow
+      - mlflow_artifacts:/app/mlartifacts
     depends_on:
       db:
         condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -39,18 +45,22 @@ services:
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
-      timeout: 5s
+      timeout: 10s
       retries: 5
+      start_period: 30s
+
   frontend:
     build:
       context: ./frontend
+    restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
       - "5173:80"
+
 volumes:
-  postgres_data:
+  cyphernex_pgdata:
   uploads:
   mlflow_data:
   mlflow_artifacts:

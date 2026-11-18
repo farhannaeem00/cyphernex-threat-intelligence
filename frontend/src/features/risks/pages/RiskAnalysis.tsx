@@ -10,7 +10,7 @@ import {
   FileText,
   Activity,
 } from "lucide-react";
-import { apiService, type RiskAssessment } from "../services/api";
+import { apiService, type RiskAssessment } from "../../../services/api";
 
 type RiskFilter = "all" | "critical" | "high" | "medium" | "low" | "unrated";
 

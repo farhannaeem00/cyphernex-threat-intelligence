@@ -1,13 +1,14 @@
 
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
-import Dashboard from './features/dashboard'
-import ThreatGraph from './features/graph'
 import { Investigations } from './features/investigations'
 import { InvestigationHistory } from './features/investigations'
-import Intelligence from './features/intelligence'
-import RiskAnalysis from './features/risks';
-import Documents from './features/documents'
+
+import { Dashboard } from "./features/dashboard";
+import { ThreatGraph } from "./features/graph";
+import { Intelligence } from "./features/intelligence";
+import { RiskAnalysis } from "./features/risks";
+import { Documents } from "./features/documents";
 // function ComingSoon({ title }: { title: string }) {
 //   return (
 //     <div className="rounded-xl border border-slate-800 bg-[#101a2b] p-8">
