@@ -1,4 +1,5 @@
 import json
+import mlflow
 
 import re
 
@@ -171,7 +172,7 @@ CAUTION_TERMS = {
 
 }
 
-
+@mlflow.trace(name="retrieve_evidence", span_type="RETRIEVER")
 def _retrieve_node(state: InvestigationState) -> InvestigationState:
 
     evidence = retrieve_evidence(
@@ -186,7 +187,7 @@ def _retrieve_node(state: InvestigationState) -> InvestigationState:
 
     return {"evidence": evidence}
 
-
+@mlflow.trace(name="groq_investigation_analysis", span_type="LLM")
 def _analyze_node(state: InvestigationState) -> InvestigationState:
     provider = GroqLLMProvider()
 
@@ -1017,7 +1018,7 @@ def _format_graph_context(graph_context: dict) -> str:
     )
 
     return "\n".join(lines)
-
+@mlflow.trace(name="run_investigation", span_type="CHAIN")
 def run_investigation(
 
     query: str,

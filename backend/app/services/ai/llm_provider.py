@@ -208,11 +208,14 @@ label it as unverified."""
         )
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                messages=[
+              response = self.client.chat.completions.create(
+                  model=self.model,
+                  temperature=self.temperature,
+                  max_completion_tokens=self.max_tokens,
+                  reasoning_effort="low",
+                  include_reasoning=False,
+                  messages=[
+            
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
