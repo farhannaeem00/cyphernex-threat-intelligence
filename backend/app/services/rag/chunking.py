@@ -20,7 +20,7 @@ def chunk_text(text: str, *, chunk_size: int = 1200, overlap: int = 180) -> list
         end = min(start + chunk_size, len(text))
         if end < len(text):
             floor = start + chunk_size // 2
-            boundary = max(text.rfind("\\n", floor, end), text.rfind(" ", floor, end))
+            boundary = max(text.rfind("\n", floor, end), text.rfind(" ", floor, end))
             if boundary > start:
                 end = boundary
         body = text[start:end]

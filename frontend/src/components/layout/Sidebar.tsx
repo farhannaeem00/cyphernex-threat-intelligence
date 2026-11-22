@@ -1,5 +1,4 @@
-
-import { NavLink } from 'react-router-dom'
+﻿import { NavLink } from 'react-router-dom'
 import {
   Activity,
   LayoutDashboard,
@@ -9,6 +8,8 @@ import {
   ShieldCheck,
   Crosshair,
   FileUp,
+  Database,
+  ExternalLink,
 } from 'lucide-react'
 
 const navigation = [
@@ -18,6 +19,7 @@ const navigation = [
   { label: 'Intelligence Search', path: '/intelligence', icon: Search },
   { label: 'Documents', path: '/documents', icon: FileUp },
   { label: 'Risk Analysis', path: '/risks', icon: ShieldAlert },
+  { label: 'Data Ingestion', path: '/ingestion', icon: Database },
 ]
 
 export default function Sidebar() {
@@ -60,6 +62,16 @@ export default function Sidebar() {
               {label}
             </NavLink>
           ))}
+
+          <a
+            href="http://localhost:5000"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-400 transition hover:bg-slate-800/70 hover:text-white"
+          >
+            <ExternalLink size={18} />
+            MLflow Tracking
+          </a>
         </nav>
       </div>
 

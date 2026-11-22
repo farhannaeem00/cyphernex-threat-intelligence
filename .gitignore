@@ -26,3 +26,8 @@ mlartifacts/
 dvc-storage/
 # Local PostgreSQL backup
 cyphernex_backup.dump
+
+# Local completion and recovery backups
+mlflow.db.pre_docker_20261120_221356.bak
+mlflow_before_upgrade.db
+*.pre_completion.bak

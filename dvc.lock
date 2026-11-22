@@ -27,5 +27,5 @@ stages:
     outs:
     - path: reports/rag_metrics.json
       hash: md5
-      md5: 59f74388a118be55796b4e1762f07eb3
-      size: 146
+      md5: 9d8062f2357a1ce78fc14d1491a19745
+      size: 138
