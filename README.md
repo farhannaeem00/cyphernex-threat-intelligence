@@ -1,116 +1,647 @@
-# CypherNex — AI-Powered Digital Threat Intelligence and Investigation Assistant
+# CypherNex
+### AI-Powered Digital Threat Intelligence and Investigation Assistant
 
-CypherNex ingests threat intelligence, stores source documents and indicators in PostgreSQL, indexes document passages with local Ollama embeddings, and supports search, graph exploration, risk analysis, and AI-assisted investigations through the existing modular LLM provider layer (Groq configured as the primary provider).
+<p align="center">
+  <strong>Turn threat intelligence data into searchable evidence, connected investigations, and source-backed security insights.</strong>
+</p>
 
-## Implemented capabilities
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue?logo=python" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react" alt="React">
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker">
+  <img src="https://img.shields.io/badge/MLflow-Experiment%20Tracking-0194E2">
+  <img src="https://img.shields.io/badge/DVC-Reproducible%20Evaluation-945DD6">
+</p>
 
-- Existing URLhaus ingestion, indicator extraction, provenance, relationship discovery, investigations, graph and risk APIs.
-- User document upload for PDF, DOCX and TXT with extension/size checks, safe hash-based storage names, SHA-256 duplicate detection, extraction, PostgreSQL metadata, chunking, BGE-M3/Ollama embeddings and JSONB vector storage.
-- Uploaded content is stored in the same `documents` and `document_chunks` tables used by hybrid RAG retrieval, so it is available to search and investigation retrieval without a separate index.
-- DVC pipeline definition for labelled retrieval evaluation inputs and metrics. PostgreSQL remains the operational database; DVC versions datasets/artifacts only.
-- MLflow experiment logging for Precision@K, Recall@K, MRR and measured mean retrieval latency. No scores are fabricated: metrics are produced only when a real labelled evaluation set is supplied and run.
-- Docker Compose stack for PostgreSQL, FastAPI and the production-built React frontend, with persistent DB/upload/MLflow volumes and health checks.
+---
 
-## Local setup (Windows PowerShell)
+## Overview
 
-Prerequisites: Python 3.12, Node.js 22, PostgreSQL, Ollama, and the `bge-m3` embedding model.
+**CypherNex** is an AI-powered digital threat intelligence and investigation platform designed to help security analysts collect, search, investigate, and understand cybersecurity threat data.
+
+The platform combines real-world threat intelligence ingestion, Retrieval-Augmented Generation (RAG), semantic search, relationship analysis, risk assessment, and source-backed AI-generated investigation reports.
+
+Rather than presenting isolated indicators, CypherNex helps investigators explore potential connections between threat intelligence records and understand the evidence supporting those connections.
+
+A key design principle is the distinction between **observed evidence, analytical inference, and confirmed facts**. Shared indicators, infrastructure, metadata, or temporal proximity can suggest relationships, but they do not independently establish threat-actor attribution or compromise.
+
+## Key Features
+
+### 1. Threat Intelligence Ingestion
+- Collect threat intelligence records from the URLhaus threat intelligence platform.
+- Ingest URLs and associated hostname indicators.
+- Store source records and provenance information.
+- Maintain document-to-indicator relationships.
+- Avoid duplicate records through deduplication.
+
+### 2. Searchable Threat Intelligence Dashboard
+- Search ingested threat intelligence documents.
+- Search indicators and associated information.
+- Explore collected records through the web interface.
+- Access investigation and threat analysis features from a centralized dashboard.
+
+### 3. AI-Assisted Investigations
+- Submit natural-language investigation queries.
+- Retrieve relevant threat intelligence evidence using RAG.
+- Analyze possible relationships across retrieved records.
+- Generate investigation reports grounded in retrieved source material.
+- Preserve investigation history for later review.
+
+### 4. Relationship Graph
+- Visualize documents and indicators as connected entities.
+- Explore document-to-indicator relationships.
+- Discover potential cross-document relationships.
+- Examine shared reporters, tags, URL paths, and temporal proximity.
+
+Relationships represent analytical observations and should not automatically be interpreted as proof of common ownership or malicious attribution.
+
+### 5. Risk Assessment
+- Generate risk assessments using source-based indicators and rule-based analysis.
+- Categorize findings into risk levels.
+- Present supporting source information.
+- Distinguish automated risk triage from confirmed compromise.
+
+### 6. Source-Backed Investigation Reports
+- Generate structured investigation reports.
+- Associate findings with source references.
+- Preserve source URLs and retrieved evidence.
+- Include evidence citations in investigation output.
+- Distinguish possible relationships from established facts.
+
+### 7. RAG Evaluation and Experiment Tracking
+- Evaluate retrieval performance using a labelled evaluation dataset.
+- Measure Precision@K, Recall@K, Mean Reciprocal Rank, and retrieval latency.
+- Track evaluation metrics with MLflow.
+- Use DVC to manage reproducible evaluation pipelines and metrics.
+
+---
+
+## System Architecture
+
+CypherNex follows a modular architecture consisting of a React frontend, FastAPI backend, PostgreSQL database, RAG services, and experiment-tracking infrastructure.
+
+```mermaid
+flowchart TB
+    U[Security Analyst]
+    FE[React + TypeScript Dashboard]
+    API[FastAPI Backend]
+
+    ING[Threat Intelligence Ingestion]
+    SEARCH[Search and Retrieval]
+    INV[Investigation Service]
+    GRAPH[Relationship Analysis]
+    RISK[Risk Assessment]
+
+    DB[(PostgreSQL)]
+    VEC[(pgvector)]
+    EMB[Embedding Service]
+    LLM[LLM Provider]
+    ML[MLflow]
+    DVC[DVC Evaluation Pipeline]
+    URL[URLhaus Threat Intelligence]
+
+    U --> FE
+    FE --> API
+
+    API --> ING
+    API --> SEARCH
+    API --> INV
+    API --> GRAPH
+    API --> RISK
+
+    URL --> ING
+    ING --> DB
+
+    SEARCH --> DB
+    SEARCH --> VEC
+    EMB --> VEC
+
+    INV --> SEARCH
+    INV --> LLM
+    INV --> DB
+
+    GRAPH --> DB
+    RISK --> DB
+
+    INV --> ML
+    DVC --> ML
+```
+
+### Data Flow
+
+1. Threat intelligence records are collected from URLhaus.
+2. The ingestion service validates and stores source records.
+3. Indicators are extracted and associated with their corresponding documents.
+4. Documents can be processed by the RAG indexing and embedding pipeline.
+5. User queries are processed through semantic and lexical retrieval.
+6. Relevant evidence is passed to the investigation service.
+7. The investigation service generates an evidence-based analytical report.
+8. Relationships and risk assessments are made available through the dashboard.
+9. Evaluation metrics and experiment information are tracked using DVC and MLflow.
+
+---
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Backend | Python, FastAPI |
+| Frontend | React, TypeScript, Vite |
+| UI Routing | React Router |
+| Frontend HTTP Client | Axios |
+| Database | PostgreSQL |
+| Vector Storage | PostgreSQL with pgvector |
+| ORM | SQLAlchemy |
+| Database Migrations | Alembic |
+| AI Architecture | Retrieval-Augmented Generation (RAG) |
+| Embeddings | BAAI/bge-m3 |
+| Embedding Runtime | Ollama |
+| LLM Integration | Modular provider architecture |
+| Threat Intelligence Source | URLhaus |
+| Experiment Tracking | MLflow |
+| Pipeline and Metrics Management | DVC |
+| Containerization | Docker and Docker Compose |
+
+---
+
+## Repository Structure
+
+```text
+cyphernex-threat-intelligence/
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── routes/
+│   │   ├── db/
+│   │   ├── integrations/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   └── services/
+│   │       ├── ingestion/
+│   │       └── rag/
+│   │
+│   └── scripts/
+│
+├── frontend/
+│   └── src/
+│       ├── components/
+│       ├── features/
+│       │   └── ingestion/
+│       ├── services/
+│       └── types/
+│
+├── data/
+│   └── evaluation/
+│
+├── reports/
+│
+├── dvc.yaml
+├── dvc.lock
+├── docker-compose.yml
+├── README.md
+└── .gitignore
+```
+
+*The structure above highlights the main application areas; individual files and additional directories may evolve as the project develops.*
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Install the following software before running CypherNex:
+
+- Git
+- Docker Desktop with Docker Compose
+- Python 3.12 or a compatible supported Python version
+- Node.js and npm (for local frontend development)
+- Ollama (if using the local embedding service)
+- A URLhaus API Auth-Key for authenticated threat intelligence ingestion
+- An LLM provider API key if the selected provider requires one
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/farhannaeem00/cyphernex-threat-intelligence.git
+
+cd cyphernex-threat-intelligence
+```
+
+### 2. Configure Environment Variables
+
+Review the environment configuration referenced by `docker-compose.yml` and the backend application.
+
+Create your local `.env` file using the project's environment template if one is provided:
 
 ```powershell
-cd backend
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edit `backend/.env` with your local `DATABASE_URL`, Groq key (if using Groq), and URLhaus key (only needed for URLhaus ingestion). Do not commit `.env`.
+Configure the required database credentials, URLhaus authentication, and AI provider settings according to the variable names used by the application.
 
-```powershell
-ollama pull bge-m3
-alembic upgrade head
-uvicorn app.main:app --reload
+**Important:** Never commit `.env` files, API keys, database passwords, or other credentials to GitHub.
+
+### 3. Start the Application with Docker
+
+Build and start the services:
+
+```bash
+docker compose up -d --build
 ```
 
-In another terminal:
+Check service status:
 
-```powershell
-cd frontend
-npm ci
-npm run dev
+```bash
+docker compose ps
 ```
 
-The Vite development server proxies API requests only if configured in `vite.config.ts`; otherwise open the backend API at `http://127.0.0.1:8000` and set the frontend API base URL as appropriate. API docs: `http://127.0.0.1:8000/docs`.
+View application logs:
 
-## Document upload
-
-Open **Documents** in the sidebar and upload a PDF, DOCX or TXT file (25 MB default). The API is `POST /api/documents/upload` with multipart field `file`; `GET /api/documents/` lists uploads. A duplicate SHA-256 hash returns the existing document rather than creating a second record. Extraction failures are rejected; embedding/indexing failures leave the document with `indexing_failed` status so it can be diagnosed and re-indexed after Ollama is available.
-
-Files are stored under `backend/storage/uploads` by default, using content hashes as disk names. The original filename is metadata only. Uploaded document text and chunks are stored in PostgreSQL. Back up the database and upload volume together.
-
-## DVC and reproducible RAG evaluation
-
-Install DVC through `pip install -r backend/requirements.txt`, then initialize once:
-
-```powershell
-dvc init
-dvc remote add -d localstore .dvc-storage
+```bash
+docker compose logs -f
 ```
 
-Create `data/evaluation/queries.jsonl` using real, manually reviewed labels. Each line must look like:
+View backend logs:
 
-```json
-{"query":"What infrastructure is associated with this indicator?","relevant_document_ids":[12,18]}
+```bash
+docker compose logs -f backend
 ```
 
-Version the evaluation set and run:
+### 4. Access the Application
 
-```powershell
-dvc add data/evaluation/queries.jsonl
+Once the services are running:
+
+| Service | URL |
+|---|---|
+| Frontend Dashboard | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| API Documentation | http://localhost:8000/docs |
+| MLflow Tracking UI | http://localhost:5000 |
+
+### 5. Stop the Application
+
+```bash
+docker compose stop
+```
+
+To remove containers and the Compose network without deleting named volumes:
+
+```bash
+docker compose down
+```
+
+**Do not use `docker compose down -v` if you want to preserve persistent database and application data.**
+
+---
+
+## Threat Intelligence Data Source
+
+CypherNex currently integrates with:
+
+### URLhaus
+
+URLhaus is a threat intelligence initiative operated by abuse.ch that focuses on collecting and sharing information about malicious URLs used for malware distribution.
+
+Official resources:
+
+- Website: https://urlhaus.abuse.ch/
+- API documentation: https://urlhaus.abuse.ch/api/
+
+URLhaus records are used as real threat intelligence input for ingestion, indicator extraction, searching, relationship analysis, and investigation.
+
+The project preserves source provenance so that analytical output can be traced back to the original records.
+
+---
+
+## Retrieval-Augmented Generation (RAG)
+
+CypherNex uses a Retrieval-Augmented Generation architecture to ground AI-assisted investigations in stored threat intelligence evidence.
+
+### Retrieval Pipeline
+
+1. User submits an investigation query.
+2. The query is converted into an embedding.
+3. Relevant document chunks are retrieved.
+4. Semantic similarity and lexical relevance contribute to retrieval ranking.
+5. Retrieved evidence is passed to the investigation service.
+6. The language model generates an analytical response using the retrieved context.
+7. Source references are included in the resulting report.
+
+### Retrieval Scoring
+
+The current retrieval service combines semantic similarity and lexical overlap:
+
+```text
+Combined Score =
+    0.82 × Semantic Similarity
+  + 0.18 × Lexical Overlap
+```
+
+This scoring approach balances semantic relevance with direct term matching.
+
+### Evidence Integrity
+
+CypherNex is designed around the following principles:
+
+- Retrieved evidence should remain traceable to its source.
+- Analytical relationships should be described as possible connections where appropriate.
+- Shared infrastructure does not establish common ownership.
+- Risk classifications should not be interpreted as proof of compromise.
+- AI-generated conclusions should not be presented as independently verified facts.
+
+---
+
+## Relationship Analysis
+
+The relationship analysis component identifies possible connections between threat intelligence records.
+
+Examples include:
+
+| Relationship | Meaning |
+|---|---|
+| Shared indicator | Multiple documents reference the same indicator |
+| Shared reporter | Records have overlapping reporter metadata |
+| Shared tag | Records contain common threat metadata |
+| Shared URL path | Records have a matching URL path |
+| Temporal proximity | Records occur within a relevant time window |
+
+These relationships provide investigative leads, not definitive attribution.
+
+Relationship confidence values are heuristic scores and should not be interpreted as calibrated probabilities.
+
+---
+
+## Risk Assessment
+
+CypherNex provides rule-based risk triage using available threat intelligence information.
+
+Risk assessments help analysts prioritize records for further investigation.
+
+The results are intended to support investigation workflows, not replace independent security validation.
+
+A high-risk classification does not, by itself, prove that a system has been compromised.
+
+---
+
+## API Overview
+
+The backend exposes REST API endpoints through FastAPI.
+
+Interactive API documentation is available at:
+
+```text
+http://localhost:8000/docs
+```
+
+### Main Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/health` | Backend health check |
+| GET | `/api/search/` | Search documents and indicators |
+| GET | `/api/graph/` | Retrieve relationship graph data |
+| GET | `/api/risks/` | Retrieve risk assessments |
+| GET | `/api/investigations/` | Retrieve investigation history |
+| POST | `/api/investigations/run` | Execute an AI-assisted investigation |
+| GET | `/api/investigations/{investigation_id}` | Retrieve a saved investigation |
+
+### Example: Health Check
+
+```bash
+curl http://localhost:8000/health
+```
+
+### Example: Search
+
+```bash
+curl "http://localhost:8000/api/search/?q=URLhaus&limit=5"
+```
+
+### Example: Relationship Graph
+
+```bash
+curl http://localhost:8000/api/graph/
+```
+
+### Example: Risk Assessments
+
+```bash
+curl http://localhost:8000/api/risks/
+```
+
+### Example: Investigation Request
+
+```bash
+curl -X POST "http://localhost:8000/api/investigations/run" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Investigate the available URLhaus threat intelligence records and identify possible connections across the associated URLs and hostnames.",
+    "limit": 6
+  }'
+```
+
+Refer to the interactive API documentation for the complete request and response schemas.
+
+---
+
+## Evaluation and Experiment Tracking
+
+CypherNex uses DVC and MLflow to support reproducible RAG evaluation and experiment tracking.
+
+### Evaluation Metrics
+
+The evaluation pipeline measures:
+
+- **Precision@K:** Proportion of retrieved results that are relevant within the top K results.
+- **Recall@K:** Proportion of relevant results retrieved within the top K results.
+- **Mean Reciprocal Rank (MRR):** Ranking quality based on the position of the first relevant result.
+- **Mean Latency:** Average retrieval execution time.
+
+### Recorded Evaluation Baseline
+
+The following metrics were recorded in the project's evaluation run:
+
+| Metric | Result |
+|---|---:|
+| Queries evaluated | 5 |
+| K | 5 |
+| Precision@5 | 0.20 |
+| Recall@5 | 0.60 |
+| MRR | 0.60 |
+| Mean latency | 5,786.74 ms |
+
+These results represent the current evaluation baseline using a small five-query evaluation dataset. They should not be interpreted as evidence of production-scale retrieval performance.
+
+### DVC
+
+DVC manages the RAG evaluation pipeline and its tracked metrics.
+
+Check pipeline status:
+
+```bash
+dvc status
+```
+
+Display recorded metrics:
+
+```bash
+dvc metrics show
+```
+
+Run the evaluation pipeline:
+
+```bash
 dvc repro
 ```
 
-The example file is only a schema example, not a real benchmark. DVC remote `.dvc-storage` is local by default; configure a shared remote only if you intentionally want one. DVC does not replace PostgreSQL.
+### MLflow
 
-## MLflow
+MLflow tracks evaluation experiments, parameters, metrics, and artifacts.
 
-Default tracking URI is `file:./mlruns`; experiment name is `cyphernex-rag-evaluation`. Run `backend/scripts/evaluate_rag.py` from the backend environment after supplying labelled queries and valid document IDs. The script calls the actual RAG retriever and logs measured Precision@K, Recall@K, MRR, latency, K, embedding model and retrieval configuration. Evaluation requires a working DB, Ollama embedding service, indexed corpus and labelled queries. MLflow UI:
+Open the tracking UI:
 
-```powershell
-mlflow ui --backend-store-uri ./mlruns
+```text
+http://localhost:5000
 ```
 
-## Docker
+The recorded evaluation run:
 
-Copy `backend/.env.example` to `backend/.env`, configure credentials and set `POSTGRES_PASSWORD` before exposing services. Then from the repository root:
+| Field | Value |
+|---|---|
+| Experiment | `cyphernex-rag-evaluation` |
+| Experiment ID | `1` |
+| Run ID | `2e979ea2158f43e1abbcfecc92c6db18` |
+| Run status | `FINISHED` |
 
-```powershell
-docker compose up --build
-```
+---
 
-Frontend: `http://localhost:5173`; backend: `http://localhost:8000`. Compose creates its own PostgreSQL database and persistent volumes. Ollama is expected on the host at `host.docker.internal:11434`; ensure the model is installed on the host. The compose backend currently starts FastAPI; apply migrations once with `docker compose exec backend alembic upgrade head` before first use.
+## Database and Data Management
 
-## Tests and quality checks
+CypherNex uses PostgreSQL for structured threat intelligence storage.
 
-```powershell
-cd backend
-pytest -q
-python -m compileall app tests scripts
-```
+The database stores information associated with:
 
-```powershell
-cd frontend
-npm ci
-npm run lint
-npm run build
-```
+- Documents
+- Indicators
+- Findings
+- Citations
+- Relationships
+- Document-indicator associations
+- Investigation records
 
-Some tests require environment settings and a reachable PostgreSQL/Ollama service; unit tests for extraction, validation, chunking and evaluation-set validation do not need live external services. Do not interpret an unrun integration test as a pass.
+Database schema changes are managed through Alembic migrations.
 
-## Architecture notes
+Database data should be preserved when restarting or rebuilding application containers.
 
-- PostgreSQL is the source of truth for documents, chunks, indicators, citations, findings, relationships and investigations.
-- Embeddings remain JSONB to preserve the current implementation and avoid forcing pgvector installation or a schema conversion.
-- Local BGE-M3 embedding calls go through Ollama. The LLM provider abstraction and Groq configuration remain unchanged.
-- DVC versions evaluation data/artifacts; MLflow tracks experiment runs. Neither replaces PostgreSQL.
-- Retrieval evaluation is meaningful only with curated relevance labels; context relevance and faithfulness are not fabricated or inferred from retrieval scores.
+Do not use destructive database reset commands on an existing installation unless you have verified backups and explicitly intend to reset the data.
+
+---
+
+## Testing and Quality Assurance
+
+The project has undergone application and integration checks covering:
+
+- Backend health endpoint.
+- Frontend build.
+- Frontend-to-backend API connectivity.
+- Document and indicator search.
+- Relationship graph retrieval.
+- Risk assessment retrieval.
+- Investigation creation and persistence.
+- Saved investigation retrieval.
+- Docker service health.
+- DVC evaluation reproducibility.
+- MLflow experiment tracking.
+
+The final integration checks completed successfully for the tested application workflows.
+
+---
+
+## Known Limitations and Future Improvements
+
+CypherNex is an evolving threat intelligence investigation platform. The following areas provide opportunities for further development.
+
+### Current Limitations
+
+- URLhaus is the currently integrated live threat intelligence source.
+- The evaluation dataset contains only five queries and is not sufficient for broad performance generalization.
+- Risk assessments use rule-based triage and should not be interpreted as probabilities.
+- Relationship confidence scores are heuristic.
+- Citation reference validation does not independently establish semantic entailment between every claim and its source.
+- Shared indicators and infrastructure do not prove common threat-actor attribution.
+- Retrieval performance and scalability require additional testing with larger datasets.
+
+### Potential Future Enhancements
+
+- Integrate additional threat intelligence sources.
+- Expand labelled evaluation datasets.
+- Improve retrieval ranking and document-level evaluation.
+- Add stronger evidence-to-claim validation.
+- Introduce analyst feedback and investigation review workflows.
+- Improve graph-based correlation and relationship explanations.
+- Add role-based access control and audit logging.
+- Expand automated testing and security validation.
+- Optimize retrieval and embedding performance for larger datasets.
+
+---
+
+## Security and Responsible Use
+
+CypherNex is intended to support cybersecurity research, threat intelligence analysis, and defensive security investigations.
+
+Users should:
+
+- Protect API keys and database credentials.
+- Avoid committing secrets or sensitive data.
+- Verify AI-generated findings against original sources.
+- Treat inferred relationships as investigative leads.
+- Validate risk assessments independently.
+- Avoid treating AI-generated attribution as confirmed fact.
+
+Threat intelligence data may contain malicious URLs and other potentially dangerous indicators. Do not open or execute suspicious resources directly on production systems.
+
+---
+
+## Contributing
+
+Contributions and suggestions are welcome.
+
+A typical contribution workflow:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement your changes.
+4. Test the affected functionality.
+5. Submit a pull request with a clear description.
+
+Please avoid committing credentials, local database files, generated artifacts, or personal environment configuration.
+
+---
+
+## Author
+
+**Farhan Naeem**
+
+Computer Science | AI Engineering | Cybersecurity | Threat Intelligence
+
+GitHub: [@farhannaeem00](https://github.com/farhannaeem00)
+
+Project Repository: [CypherNex — AI-Powered Digital Threat Intelligence and Investigation Assistant](https://github.com/farhannaeem00/cyphernex-threat-intelligence)
+
+---
+
+## License
+
+No license has been specified for this repository yet.
+
+Unless a license is added, the project should be treated as having all rights reserved. Add an appropriate open-source license if you intend to permit reuse, modification, and redistribution.
+
+---
+
+<p align="center">
+  <strong>CypherNex — Connecting Threat Intelligence. Supporting Evidence-Based Investigation.</strong>
+</p>
