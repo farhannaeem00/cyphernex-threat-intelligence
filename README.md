@@ -80,68 +80,74 @@ Relationships represent analytical observations and should not automatically be 
 
 ## System Architecture
 
-CypherNex follows a modular architecture consisting of a React frontend, FastAPI backend, PostgreSQL database, RAG services, and experiment-tracking infrastructure.
+CypherNex follows a modular, service-oriented architecture integrating a React frontend, FastAPI backend, PostgreSQL database, RAG pipeline, threat intelligence ingestion, and MLflow/DVC evaluation infrastructure.
+
+The following diagram illustrates the main components and their interactions.
 
 ```mermaid
-flowchart TB
-    U[Security Analyst]
-    FE[React + TypeScript Dashboard]
-    API[FastAPI Backend]
+flowchart TD
+    A["Security Analyst"] --> B["React + TypeScript Frontend"]
+    B --> C["FastAPI Backend"]
 
-    ING[Threat Intelligence Ingestion]
-    SEARCH[Search and Retrieval]
-    INV[Investigation Service]
-    GRAPH[Relationship Analysis]
-    RISK[Risk Assessment]
+    C --> D["Threat Intelligence Ingestion"]
+    C --> E["Search and Retrieval"]
+    C --> F["AI Investigation Service"]
+    C --> G["Relationship Analysis"]
+    C --> H["Risk Assessment"]
 
-    DB[(PostgreSQL)]
-    VEC[(pgvector)]
-    EMB[Embedding Service]
-    LLM[LLM Provider]
-    ML[MLflow]
-    DVC[DVC Evaluation Pipeline]
-    URL[URLhaus Threat Intelligence]
+    I["URLhaus API"] --> D
+    D --> J[("PostgreSQL Database")]
 
-    U --> FE
-    FE --> API
+    J --> K["Document and Indicator Storage"]
+    J --> L["Investigation and Findings Storage"]
+    J --> M["Relationship and Citation Storage"]
 
-    API --> ING
-    API --> SEARCH
-    API --> INV
-    API --> GRAPH
-    API --> RISK
+    E --> N["RAG Retrieval Pipeline"]
+    K --> N
+    N --> O["Embedding Service"]
+    N --> P["Semantic and Lexical Ranking"]
 
-    URL --> ING
-    ING --> DB
+    O --> Q["Vector Storage / pgvector"]
+    P --> F
 
-    SEARCH --> DB
-    SEARCH --> VEC
-    EMB --> VEC
+    F --> R["LLM Provider"]
+    F --> S["Source-Backed Investigation Report"]
 
-    INV --> SEARCH
-    INV --> LLM
-    INV --> DB
+    G --> J
+    H --> J
 
-    GRAPH --> DB
-    RISK --> DB
-
-    INV --> ML
-    DVC --> ML
+    F --> T["MLflow"]
+    U["DVC Evaluation Pipeline"] --> T
 ```
+
+### Architecture Components
+
+| Component | Responsibility |
+|---|---|
+| React + TypeScript | User interface and investigation dashboard |
+| FastAPI | REST API and application orchestration |
+| PostgreSQL | Structured threat intelligence and investigation storage |
+| URLhaus Integration | External threat intelligence ingestion |
+| RAG Pipeline | Evidence retrieval and contextual analysis |
+| Embedding Service | Semantic representation of documents and queries |
+| Vector Storage | Storage and retrieval of embeddings |
+| LLM Provider | AI-assisted investigation and report generation |
+| Relationship Analysis | Identification of potential connections across records |
+| Risk Assessment | Rule-based threat risk triage |
+| MLflow | Experiment tracking and evaluation metrics |
+| DVC | Reproducible evaluation pipeline management |
 
 ### Data Flow
 
 1. Threat intelligence records are collected from URLhaus.
-2. The ingestion service validates and stores source records.
-3. Indicators are extracted and associated with their corresponding documents.
-4. Documents can be processed by the RAG indexing and embedding pipeline.
-5. User queries are processed through semantic and lexical retrieval.
-6. Relevant evidence is passed to the investigation service.
-7. The investigation service generates an evidence-based analytical report.
-8. Relationships and risk assessments are made available through the dashboard.
-9. Evaluation metrics and experiment information are tracked using DVC and MLflow.
-
----
+2. The ingestion service validates and stores documents and indicators.
+3. Documents are processed for retrieval and embedding.
+4. User queries are submitted through the React dashboard.
+5. FastAPI coordinates semantic and lexical evidence retrieval.
+6. Relevant evidence is passed to the AI investigation service.
+7. The LLM generates an investigation report grounded in retrieved evidence.
+8. Relationship analysis and risk assessments provide additional investigative context.
+9. Evaluation experiments and metrics are tracked through MLflow and DVC.
 
 ## Technology Stack
 
